@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 
@@ -13,7 +13,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUser(username, password);
 
     if (!user) {
-      throw new BadRequestException();
+      throw new UnauthorizedException({ description: 'You have provided an invalid username/password.' });
     }
 
     return user;

@@ -1,4 +1,5 @@
 import {
+  ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -25,6 +26,7 @@ import { UserEntity } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @ApiOkResponse({ type: UserEntity })
   @ApiQuery({ name: 'user_name', required: true })
   @Get('findUsername')
   async findUsername(
@@ -50,6 +52,7 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
+  @ApiBody({ type: CreateUserDto })
   @ApiCreatedResponse({ type: CreateUserDto })
   @Post()
   create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
