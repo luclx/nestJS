@@ -50,7 +50,7 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @ApiCreatedResponse({ type: UserEntity })
+  @ApiCreatedResponse({ type: CreateUserDto })
   @Post()
   create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return this.usersService.create(createUserDto);

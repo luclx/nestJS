@@ -1,19 +1,20 @@
 'use strict';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsInt, MaxLength, IsAlphanumeric } from 'class-validator';
+import { IsInt, MaxLength, IsAlphanumeric } from 'class-validator';
 
 export class CreateUserDto {
   @IsAlphanumeric()
   @ApiProperty()
-  @MaxLength(10)
-  private readonly _user_name: string;
-  public get user_name(): string {
-    return this._user_name;
-  }
+  @MaxLength(50)
+  private readonly user_name: string;
 
   @IsInt({ message: 'age should a number.' })
   @ApiProperty()
-  @MaxLength(3)
-  readonly age: number;
+  private readonly age: number;
+
+  @IsAlphanumeric()
+  @ApiProperty()
+  @MaxLength(10)
+  private readonly pass_word: string;
 }
