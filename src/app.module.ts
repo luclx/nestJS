@@ -2,10 +2,16 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SnakeNamingStrategy } from './snake-naming.strategy';
-import { PetModule } from './pet/pet.module';
-import { UsersModule } from './users/users.module';
+import { AssetLocationModule } from './asset-location/asset-location.module';
 import { AuthModule } from './auth/auth.module';
+import { BuildingModule } from './building/building.module';
+import { DepartmentModule } from './department/department.module';
+import { ImportModule } from './import/import.module';
+import { PetModule } from './pet/pet.module';
+import { RoomInformationModule } from './room-information/room-information.module';
+import { RoomTypeModule } from './room-type/room-type.module';
+import { SnakeNamingStrategy } from './snake-naming.strategy';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -27,8 +33,14 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     PetModule,
     AuthModule,
+    BuildingModule,
+    RoomTypeModule,
+    AssetLocationModule,
+    DepartmentModule,
+    RoomInformationModule,
+    ImportModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
