@@ -1,19 +1,18 @@
 import { AbstractEntity } from 'src/common/abstract.entity';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Building } from './../../building/entities/building.entity';
-'use strict';
 
 @Entity({ name: 'AssetLocation' })
 export class AssetLocation extends AbstractEntity {
 
-  @OneToOne(type => Building, building => building.id)
+  @ManyToOne(type => Building, building => building.id)
   @JoinColumn({ name: 'building_id' })
   building: Building;
 
   @Column({ type: 'bigint' })
   parent_id: number
 
-  @Column({ type: 'varchar', length: 200 })
+  @Column({ type: 'varchar', length: 200, nullable: false })
   room_number: string;
 
   @Column({ type: 'varchar', length: 200 })

@@ -27,6 +27,7 @@ import { UsersModule } from './users/users.module';
         database: 'first_test',
         migrationsRun: false,
         ssl: false,
+        entities: ["dist/**/*.entity.js"],
         namingStrategy: new SnakeNamingStrategy(),
       }),
     }),

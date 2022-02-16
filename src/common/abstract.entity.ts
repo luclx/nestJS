@@ -1,29 +1,28 @@
 'use strict';
-
 import {
 	Column,
-    BeforeInsert,
+	BeforeInsert,
 	BeforeUpdate,
 	PrimaryColumn,
-    PrimaryGeneratedColumn
+	PrimaryGeneratedColumn
 } from 'typeorm';
 import { classToPlain, Exclude } from 'class-transformer';
 
 export abstract class AbstractEntity {
 	@PrimaryColumn()
-    @PrimaryGeneratedColumn()
+	@PrimaryGeneratedColumn()
 	@Exclude()
-    id: number;
+	id: number;
 
-    @Column({ name: "createdAt" })
-    created_at: Date;
+	@Column({ name: "createdAt" })
+	created_at: Date;
 
-    @Column({ name: "updatedAt" })
-    updated_at: Date;
+	@Column({ name: "updatedAt" })
+	updated_at: Date;
 
-    // toDto(options?: any) {
-    //     return UtilsService.toDto(this.dtoClass, this, options);
-    // }
+	// toDto(options?: any) {
+	//     return UtilsService.toDto(this.dtoClass, this, options);
+	// }
 
 	@BeforeInsert()
 	public setCreateDate(): void {
