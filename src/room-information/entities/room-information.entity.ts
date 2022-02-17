@@ -1,6 +1,6 @@
-import { AbstractEntity } from './../../common/abstract.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { AssetLocationEntity } from './../../asset-location/entities/asset-location.entity';
+import { AbstractEntity } from './../../common/abstract.entity';
 import { DepartmentEntity } from './../../department/entities/department.entity';
 import { RoomTypeEntity } from './../../room-type/entities/room-type.entity';
 
@@ -8,7 +8,7 @@ import { RoomTypeEntity } from './../../room-type/entities/room-type.entity';
 export class RoomInformationEntity extends AbstractEntity {
 
   @OneToOne(type => AssetLocationEntity, assetLocation => assetLocation.id)
-  @JoinColumn({ name: 'asset_location_id'})
+  @JoinColumn({ name: 'asset_location_id' })
   assetLocation: number;
 
   @Column({ type: 'numeric' })

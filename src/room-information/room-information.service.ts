@@ -1,26 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateRoomInformationDto } from './dto/create-room-information.dto';
-import { UpdateRoomInformationDto } from './dto/update-room-information.dto';
+import { Connection } from 'typeorm';
+import { RoomInformationEntity } from './entities/room-information.entity';
+import { RoomInformationRepository } from './room-information.repository';
 
 @Injectable()
 export class RoomInformationService {
-  create(createRoomInformationDto: CreateRoomInformationDto) {
-    return 'This action adds a new roomInformation';
+  private repository: RoomInformationRepository;
+
+  constructor(private readonly connection: Connection) {
+    this.repository = this.connection.getCustomRepository(RoomInformationRepository);
+  }
+  async create(_fields): Promise<RoomInformationEntity[] | RoomInformationEntity> {
+    const _item = Object.assign(new RoomInformationEntity(), _fields);
+    return await this.repository.save(_item);
   }
 
-  findAll() {
-    return `This action returns all roomInformation`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} roomInformation`;
-  }
-
-  update(id: number, updateRoomInformationDto: UpdateRoomInformationDto) {
-    return `This action updates a #${id} roomInformation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} roomInformation`;
+  async findOne(_fields): Promise<RoomInformationEntity> {
+    return await this.repository.findOne(_fields);
   }
 }
