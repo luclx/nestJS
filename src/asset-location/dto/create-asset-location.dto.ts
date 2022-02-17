@@ -1,9 +1,9 @@
 import { IsAlphanumeric, MaxLength, IsString, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 export class CreateAssetLocationDto {
-  @IsNumber()
-  @ApiProperty()
-  private readonly building_id: number;
+  // @IsNumber()
+  // @ApiProperty()
+  // private readonly building_id: number;
 
   @ApiProperty()
   @IsNumber()
