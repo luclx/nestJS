@@ -6,11 +6,11 @@ import { BuildingService } from './../building/building.service';
 'use strict';
 
 import { Module } from '@nestjs/common';
-import { BuildingModule } from 'src/building/building.module';
-import { AssetLocationModule } from 'src/asset-location/asset-location.module';
-import { DepartmentModule } from 'src/department/department.module';
-import { RoomInformationModule } from 'src/room-information/room-information.module';
-import { RoomTypeModule } from 'src/room-type/room-type.module';
+import { BuildingModule } from './../building/building.module';
+import { AssetLocationModule } from './../asset-location/asset-location.module';
+import { DepartmentModule } from './../department/department.module';
+import { RoomInformationModule } from './../room-information/room-information.module';
+import { RoomTypeModule } from './../room-type/room-type.module';
 import { ImportController } from './import.controller';
 
 @Module({

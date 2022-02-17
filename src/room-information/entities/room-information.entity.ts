@@ -1,26 +1,26 @@
-import { AbstractEntity } from 'src/common/abstract.entity';
+import { AbstractEntity } from './../../common/abstract.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { AssetLocation } from './../../asset-location/entities/asset-location.entity';
-import { Department } from './../../department/entities/department.entity';
-import { RoomType } from './../../room-type/entities/room-type.entity';
+import { AssetLocationEntity } from './../../asset-location/entities/asset-location.entity';
+import { DepartmentEntity } from './../../department/entities/department.entity';
+import { RoomTypeEntity } from './../../room-type/entities/room-type.entity';
 
 @Entity({ name: 'RoomInformation' })
-export class RoomInformation extends AbstractEntity {
+export class RoomInformationEntity extends AbstractEntity {
 
-  @OneToOne(type => AssetLocation, assetLocation => assetLocation.id)
-  @JoinColumn({ name: 'asset_location_id' })
+  @OneToOne(type => AssetLocationEntity, assetLocation => assetLocation.id)
+  @JoinColumn({ name: 'asset_location_id'})
   assetLocation: number;
 
   @Column({ type: 'numeric' })
   area: number;
 
-  @OneToOne(type => Department, department => department.id)
+  @OneToOne(type => DepartmentEntity, department => department.id)
   @JoinColumn({ name: 'department_id' })
-  department: Department;
+  department: DepartmentEntity;
 
-  @OneToOne(type => RoomType, room_type_id => room_type_id.id)
+  @OneToOne(type => RoomTypeEntity, room_type_id => room_type_id.id)
   @JoinColumn({ name: 'room_type_id' })
-  roomType: RoomType;
+  roomType: RoomTypeEntity;
 
   @Column({ type: 'varchar', length: 50 })
   unit_number: string;

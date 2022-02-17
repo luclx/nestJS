@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Connection } from 'typeorm';
+import { LoggingService } from './../shared/services/logging.service';
 import { AssetLocationRepository } from './assset-location.repository';
-import { AssetLocation } from './entities/asset-location.entity';
+import { AssetLocationEntity } from './entities/asset-location.entity';
 
 @Injectable()
 export class AssetLocationService {
@@ -12,16 +13,18 @@ export class AssetLocationService {
     this.assetLocationRepository = this.connection.getCustomRepository(AssetLocationRepository);
   }
 
-  async create(_fields): Promise<AssetLocation> {
-    const _item = Object.assign(new AssetLocation(), _fields)
+  public async create(_fields): Promise<AssetLocationEntity[] | AssetLocationEntity> {
+    // const _item = this.assetLocationRepository.create(createBuildingDto);
+    const _item = Object.assign(new AssetLocationEntity(), _fields);
+    LoggingService.info(_item)
     return await this.assetLocationRepository.save(_item);
   }
 
-  async findAll(): Promise<AssetLocation[]> {
+  async findAll(): Promise<AssetLocationEntity[]> {
     return await this.assetLocationRepository.find({})
   }
 
-  async findOne(_fields): Promise<AssetLocation> {
+  async findOne(_fields): Promise<AssetLocationEntity> {
     return await this.assetLocationRepository.findOne(_fields);
   }
 }

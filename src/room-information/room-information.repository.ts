@@ -1,5 +1,5 @@
 import { EntityRepository, Repository } from 'typeorm';
-import { RoomInformation } from './entities/room-information.entity';
+import { RoomInformationEntity } from './entities/room-information.entity';
 
-@EntityRepository(RoomInformation)
-export class RoomInformationRepository extends Repository<RoomInformation> { }
+@EntityRepository(RoomInformationEntity)
+export class RoomInformationRepository extends Repository<RoomInformationEntity> { }

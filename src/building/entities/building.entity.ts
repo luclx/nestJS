@@ -1,8 +1,8 @@
-import { AbstractEntity } from "src/common/abstract.entity";
+import { AbstractEntity } from "./../../common/abstract.entity";
 import { Column, Entity } from "typeorm";
 
 @Entity({ name: 'Building' })
-export class Building extends AbstractEntity {
+export class BuildingEntity extends AbstractEntity {
   @Column({ type: 'bigint' })
   subscription_id: number;
 

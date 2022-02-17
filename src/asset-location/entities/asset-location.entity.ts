@@ -1,13 +1,13 @@
-import { AbstractEntity } from 'src/common/abstract.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
-import { Building } from './../../building/entities/building.entity';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { BuildingEntity } from './../../building/entities/building.entity';
+import { AbstractEntity } from './../../common/abstract.entity';
 
 @Entity({ name: 'AssetLocation' })
-export class AssetLocation extends AbstractEntity {
+export class AssetLocationEntity extends AbstractEntity {
 
-  @ManyToOne(type => Building, building => building.id)
+  @ManyToOne(_type => BuildingEntity, _building => _building.id)
   @JoinColumn({ name: 'building_id' })
-  building: Building;
+  building: BuildingEntity;
 
   @Column({ type: 'bigint' })
   parent_id: number

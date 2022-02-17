@@ -1,4 +1,4 @@
-import { AssetLocation } from './../asset-location/entities/asset-location.entity';
+import { AssetLocationEntity } from './../asset-location/entities/asset-location.entity';
 'use strict';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';

@@ -1,14 +1,13 @@
-import { AssetLocationRepository } from './assset-location.repository';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AssetLocationService } from './asset-location.service';
+import { BuildingEntity } from './../building/entities/building.entity';
 import { AssetLocationController } from './asset-location.controller';
-import { Building } from 'src/building/entities/building.entity';
-
+import { AssetLocationService } from './asset-location.service';
+import { AssetLocationRepository } from './assset-location.repository';
 @Module({
-  imports: [TypeOrmModule.forFeature([AssetLocationRepository, Building])],
+  imports: [TypeOrmModule.forFeature([AssetLocationRepository, BuildingEntity])],
   controllers: [AssetLocationController],
   providers: [AssetLocationService],
   exports: [AssetLocationService]
 })
-export class AssetLocationModule {}
+export class AssetLocationModule { }

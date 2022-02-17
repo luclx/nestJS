@@ -7,9 +7,9 @@ import { AuthModule } from './auth/auth.module';
 import { BuildingModule } from './building/building.module';
 import { DepartmentModule } from './department/department.module';
 import { ImportModule } from './import/import.module';
-import { PetModule } from './pet/pet.module';
 import { RoomInformationModule } from './room-information/room-information.module';
 import { RoomTypeModule } from './room-type/room-type.module';
+import { SharedModule } from './shared/shared.module';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
 import { UsersModule } from './users/users.module';
 
@@ -32,14 +32,14 @@ import { UsersModule } from './users/users.module';
       }),
     }),
     UsersModule,
-    PetModule,
     AuthModule,
     BuildingModule,
     RoomTypeModule,
     AssetLocationModule,
     DepartmentModule,
     RoomInformationModule,
-    ImportModule
+    ImportModule,
+    // SharedModule
   ],
   controllers: [AppController],
   providers: [AppService],
