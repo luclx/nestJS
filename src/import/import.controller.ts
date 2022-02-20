@@ -36,6 +36,9 @@ export class ImportController {
 		private readonly sorService: SorService,
 	) { }
 
+	/**
+	 * IMPORTANT: move all levels to TOP
+	 */
 	@Get('import_location')
 	async importRoomInformation(): Promise<void> {
 		try {
@@ -151,9 +154,9 @@ export class ImportController {
 	@Get('import_sor')
 	async importSOR(): Promise<void> {
 		try {
-			const _location = path.resolve('/Users/luc.le/S3/Block1A.xlsx');
+			const _location = path.resolve('/Users/luc.le/S3/15_1\ Cleaning\ SOR.xls');
 			const wb = XLSX.readFile(_location);
-			const ws = wb.Sheets[wb.SheetNames[0]];
+			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
 
 			// Prepare data
