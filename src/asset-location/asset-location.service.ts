@@ -13,11 +13,11 @@ export class AssetLocationService {
     this.repository = this.connection.getCustomRepository(AssetLocationRepository);
   }
 
-  public async create(_fields): Promise<AssetLocationEntity[] | AssetLocationEntity> {
-    LoggingService.info(_fields)
+  public async create(_fields): Promise<AssetLocationEntity> {
+    // LoggingService.info(_fields)
     // const _item = this.repository.create(_fields);
     const _item = Object.assign(new AssetLocationEntity(), _fields);
-    LoggingService.info(_item)
+    // LoggingService.info(_item)
     return await this.repository.save(_item);
   }
 

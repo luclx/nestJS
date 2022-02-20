@@ -10,7 +10,7 @@ export class RoomInformationService {
   constructor(private readonly connection: Connection) {
     this.repository = this.connection.getCustomRepository(RoomInformationRepository);
   }
-  async create(_fields): Promise<RoomInformationEntity[] | RoomInformationEntity> {
+  async create(_fields): Promise<RoomInformationEntity> {
     const _item = Object.assign(new RoomInformationEntity(), _fields);
     return await this.repository.save(_item);
   }
