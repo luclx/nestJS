@@ -90,8 +90,8 @@ export class ImportController {
 									building_id: 1,
 									parent_id: null,
 									room_number: _n_parent_location,
-									slug_name: _n_name,
-									room_name: _n_name
+									slug_name: _n_parent_location,
+									room_name: _n_parent_location
 								})
 							}
 						}
@@ -99,7 +99,7 @@ export class ImportController {
 							building_id: 1,
 							parent_id: _parent ? _parent.id : null,
 							room_number: _n_location,
-							slug_name: _n_location + '(' + _n_name + ')',
+							slug_name: _n_location + ' (' + _n_name + ')',
 							room_name: _n_name
 						})
 					}
@@ -154,7 +154,7 @@ export class ImportController {
 	@Get('import_sor')
 	async importSOR(): Promise<void> {
 		try {
-			const _location = path.resolve('/Users/luc.le/S3/15_1\ Cleaning\ SOR.xls');
+			const _location = path.resolve('/Users/luc.le/S3/sor_handled/15_1\ Cleaning\ SOR.xls');
 			const wb = XLSX.readFile(_location);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
