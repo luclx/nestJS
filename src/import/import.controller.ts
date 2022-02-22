@@ -62,13 +62,13 @@ export class ImportController {
 			for (let i = 0; i < wsData.length; i++) {
 				const _obj = wsData[i];
 				// console.log("🚀  OBJ", _obj);
-				const _n_name = _obj['Name'];
-				const _n_room_number = _obj['Number'];
+				const _n_name = String(_obj['Name']).trim();
+				const _n_room_number = String(_obj['Number']).trim();
 				const _n_area = _obj['Area'];
-				const _n_department = _obj['Department/School'];
-				const _n_room_type = _obj['Room Type'];
-				const _n_unit_number = _obj['Unit Number']
-				const _n_lease = _obj['Lease (Y/N)']
+				const _n_department = String(_obj['Department/School']).trim();
+				const _n_room_type = String(_obj['Room Type']).trim();
+				const _n_unit_number = String(_obj['Unit Number']).trim();
+				const _n_lease = String(_obj['Lease (Y/N)']).trim();
 				console.log("🚀  OBJ", _n_room_number);
 
 				//---------------Location--------------
@@ -154,7 +154,7 @@ export class ImportController {
 	@Get('import_sor')
 	async importSOR(): Promise<void> {
 		try {
-			const _location = path.resolve('/Users/luc.le/S3/sor_handled/15_1\ Cleaning\ SOR.xls');
+			const _location = path.resolve('/Users/luc.le/S3/sor_handled/15_8\ FMCS\ SOR\ Rev\ 1.xlsx');
 			const wb = XLSX.readFile(_location);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -175,10 +175,13 @@ export class ImportController {
 			for (let i = 0; i < wsData.length; i++) {
 				const _obj = wsData[i];
 				console.log("🚀  OBJ", _obj);
-				const _n_unit = _obj['Unit'];
-				const _n_type = _obj['Type'];
-				const _n_item_no = _obj['Item No.'];
-				const _n_description = _obj['Description'];
+				const _g_unit = String(_obj['Unit']).replace('Per ', '').replace('per ', '').trim().toUpperCase();
+				const _n_unit = _g_unit === 'undefined' || _g_unit === '' ? 'N/A' : _g_unit;
+				const _g_type = String(_obj['Type']).trim();
+				const _n_type = _g_type === 'undefined' || _g_type === '' ? 'N/A' : _g_type;
+				const _g_item_no = String(_obj['Item No.']).trim();
+				const _n_item_no = _g_item_no === 'undefined' || _g_item_no === undefined ? 'N/A' : _g_item_no;;
+				const _n_description = String(_obj['Description']).trim();
 				const _n_unit_price = _obj['Price']
 
 				let _unit = _units.find(x => x.name === _n_unit);
