@@ -7,5 +7,6 @@ export class AssetUDSEntity extends AbstractEntity {
   @Column({ type: 'bigint' })
   asset_3d_id: number;
 
-  pipes: JSON;
+  @Column({ type: 'text' })
+  pipes: string;
 }

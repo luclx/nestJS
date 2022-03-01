@@ -394,4 +394,52 @@ export class ImportController {
 			console.log("🚀 ~ file: ImportService.js ERROR", err)
 		}
 	}
+
+	@Get('import_asset_uds')
+	async importAssetUDS(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/TP_UDS\ Information_Blk\ 1A.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[1]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			// Prepare data
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			const importData = [];
+
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				console.log("🚀  OBJ", _obj);
+				const _n_parent = String(_obj['P']).trim();
+				const _n_child = String(_obj['C']).trim();
+
+				let _asset = await this.asset3DService.findOne({ equipment_label: _n_parent })
+
+				if (_asset) {
+					importData.push({
+						asset_3d_id: _asset.id,
+						pipes: _n_child
+					});
+				} else {
+					console.log("🚀  ASSET MISSING ", _n_parent);
+				}
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const _uds = await this.assetUDSService.create(data);
+				console.log("🚀 IMPORTED UDS", _uds.asset_3d_id);
+			}
+			console.log("🚀 ~ Import DONE");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
 }
