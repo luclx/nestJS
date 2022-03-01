@@ -103,6 +103,7 @@ export class ImportController {
 									slug_name: _n_parent_location,
 									room_name: _n_parent_location
 								})
+								console.log("🚀 IMPORTED PARENT LOCATION", _parent.room_number);
 							}
 						}
 						_asset_location = await this.assetLocationService.create({
@@ -112,6 +113,7 @@ export class ImportController {
 							slug_name: _n_location + ' (' + _n_name + ')',
 							room_name: _n_name
 						})
+						console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
 					}
 
 					_asset_locations.push(_asset_location);
@@ -125,6 +127,7 @@ export class ImportController {
 					_department = await this.departmentService.findOne({ name: _n_department })
 					if (!_department) {
 						_department = await this.departmentService.create({ name: _n_department });
+						console.log("🚀 IMPORTED DEPT", _department.name);
 					}
 					_departments.push(_department)
 				}
@@ -136,6 +139,7 @@ export class ImportController {
 					_type = await this.roomTypeService.findOne({ name: _n_room_type })
 					if (!_type) {
 						_type = await this.roomTypeService.create({ name: _n_room_type });
+						console.log("🚀 IMPORTED TYPE", _type.name);
 					}
 					_room_types.push(_type)
 				}
@@ -154,7 +158,7 @@ export class ImportController {
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
 				const _rom_info = await this.roomInformationService.create(data);
-				console.log("🚀 IMPORTED", _rom_info.id);
+				console.log("🚀 IMPORTED ROOM", _rom_info.id);
 			}
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err)
@@ -199,6 +203,7 @@ export class ImportController {
 					_unit = await this.unitService.findOne({ name: _n_unit })
 					if (!_unit) {
 						_unit = await this.unitService.create({ name: _n_unit });
+						console.log("🚀 IMPORTED UNIT", _unit.name);
 					}
 					_units.push(_unit)
 				}
@@ -208,6 +213,7 @@ export class ImportController {
 					_type = await this.sorTypeService.findOne({ name: _n_type })
 					if (!_type) {
 						_type = await this.sorTypeService.create({ name: _n_type });
+						console.log("🚀 IMPORTED SOR TYPE", _type.name);
 					}
 					_types.push(_type)
 				}
@@ -224,7 +230,7 @@ export class ImportController {
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
 				const _sor = await this.sorService.create(data);
-				console.log("🚀 IMPORTED", _sor.id);
+				console.log("🚀 IMPORTED SOR", _sor.id);
 			}
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err);
@@ -299,6 +305,7 @@ export class ImportController {
 									slug_name: _n_parent_location,
 									room_name: _n_parent_location
 								})
+								console.log("🚀 IMPORTED PARENT LOCATION", _parent.room_number);
 							}
 						}
 						_asset_location = await this.assetLocationService.create({
@@ -308,6 +315,7 @@ export class ImportController {
 							slug_name: _n_location + ' (' + _n_room_name + ')',
 							room_name: _n_room_name
 						})
+						console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
 					}
 
 					_asset_locations.push(_asset_location);
@@ -321,6 +329,7 @@ export class ImportController {
 					_system = await this.assetSystemService.findOne({ name: _n_system })
 					if (!_system) {
 						_system = await this.assetSystemService.create({ name: _n_system });
+						console.log("🚀 IMPORTED SYSTEM", _system.name);
 					}
 					_systems.push(_system)
 				}
@@ -332,6 +341,7 @@ export class ImportController {
 					_sub_system = await this.assetSubSystemService.findOne({ name: _n_sub_system })
 					if (!_sub_system) {
 						_sub_system = await this.assetSubSystemService.create({ name: _n_sub_system, asset_system_id: _system.id });
+						console.log("🚀 IMPORTED SUB SYSTEM", _sub_system.name);
 					}
 					_sub_systems.push(_sub_system)
 				}
@@ -343,14 +353,15 @@ export class ImportController {
 					_classification = await this.assetClassificationService.findOne({ name: _n_classification })
 					if (!_classification) {
 						_classification = await this.assetClassificationService.create({ name: _n_classification });
+						console.log("🚀 IMPORTED CLASSIFICATION", _classification.name);
 					}
 					_classifications.push(_classification)
 				}
 				//------------Asset Classification END ----------------
 
 				importData.push({
-					zone_id: 1,
-					building_id: 1,
+					zone_id: 5,
+					building_id: 91,
 					asset_location_id: _asset_location.id,
 					asset_system_id: _system.id,
 					asset_subsystem_id: _sub_system.id,
@@ -375,8 +386,8 @@ export class ImportController {
 
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
-				const _rom_info = await this.asset3DService.create(data);
-				console.log("🚀 IMPORTED", "");
+				const _asset_info = await this.asset3DService.create(data);
+				console.log("🚀 IMPORTED ASSET", _asset_info.equipment_label);
 			}
 			console.log("🚀 IMPORT DONE.", "");
 		} catch (err) {
