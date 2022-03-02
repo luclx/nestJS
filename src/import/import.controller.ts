@@ -1,3 +1,4 @@
+import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AssetLocationService } from './../asset-location/asset-location.service';
@@ -45,7 +46,8 @@ export class ImportController {
 		private readonly assetSubSystemService: AssetSubSystemService,
 		private readonly assetUDSService: AssetUDSService,
 		private readonly assetClassificationService: AssetClassificationService,
-		private readonly warrantyTypeService: WarrantyTypeService
+		private readonly warrantyTypeService: WarrantyTypeService,
+		private readonly facilityTypeService: FacilityTypeService
 	) { }
 
 	/**
@@ -474,6 +476,43 @@ export class ImportController {
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
 				const _type = await this.warrantyTypeService.create(data);
+				console.log("🚀 IMPORTED TYPE: ", _type.name);
+			}
+			console.log("🚀 ~ Import DONE");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
+
+	@Get('import_facility_type')
+	async importFacilityType(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/CIFM\ list.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[2]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			// Prepare data
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			const importData = [];
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				console.log("🚀  OBJ", _obj);
+				const _n_type = String(_obj['A']).trim();
+
+				importData.push({ name: _n_type });
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const _type = await this.facilityTypeService.create(data);
 				console.log("🚀 IMPORTED TYPE: ", _type.name);
 			}
 			console.log("🚀 ~ Import DONE");

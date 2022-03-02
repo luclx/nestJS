@@ -1,3 +1,4 @@
+import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { Module } from '@nestjs/common';
 import { WarrantyTypeService } from 'src/warranty_type/warranty_type.service';
 import { AssetLocationModule } from './../asset-location/asset-location.module';
@@ -46,7 +47,8 @@ import { ImportController } from './import.controller';
         AssetSystemService,
         AssetUDSService,
         Asset3DService,
-        WarrantyTypeService
+        WarrantyTypeService,
+        FacilityTypeService
     ]
 })
 export class ImportModule { }
