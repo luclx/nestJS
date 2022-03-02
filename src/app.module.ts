@@ -15,6 +15,7 @@ import { RoomInformationModule } from './room-information/room-information.modul
 import { RoomTypeModule } from './room-type/room-type.module';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
 import { UsersModule } from './users/users.module';
+import { WarrantyTypeModule } from './warranty_type/warranty_type.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { UsersModule } from './users/users.module';
     Asset3DModule,
     AssetSystemModule,
     AssetSubSystemModule,
-    AssetUDSModule
+    AssetUDSModule,
+    WarrantyTypeModule
     // SharedModule
   ],
   controllers: [AppController],

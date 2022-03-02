@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { WarrantyTypeService } from 'src/warranty_type/warranty_type.service';
 import { AssetLocationModule } from './../asset-location/asset-location.module';
 import { AssetLocationService } from './../asset-location/asset-location.service';
 import { Asset3DService } from './../asset_3d/asset_3d.service';
@@ -44,7 +45,8 @@ import { ImportController } from './import.controller';
         AssetSubSystemService,
         AssetSystemService,
         AssetUDSService,
-        Asset3DService
+        Asset3DService,
+        WarrantyTypeService
     ]
 })
 export class ImportModule { }

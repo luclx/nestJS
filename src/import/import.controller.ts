@@ -13,6 +13,7 @@ import { RoomTypeService } from './../room-type/room-type.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
 import { UnitService } from './../unit_of_measurement/unit.service';
+import { WarrantyTypeService } from './../warranty_type/warranty_type.service';
 'use strict';
 
 const fs = require('fs');
@@ -43,7 +44,8 @@ export class ImportController {
 		private readonly assetSystemService: AssetSystemService,
 		private readonly assetSubSystemService: AssetSubSystemService,
 		private readonly assetUDSService: AssetUDSService,
-		private readonly assetClassificationService: AssetClassificationService
+		private readonly assetClassificationService: AssetClassificationService,
+		private readonly warrantyTypeService: WarrantyTypeService
 	) { }
 
 	/**
@@ -436,6 +438,43 @@ export class ImportController {
 			for (const data of importData) {
 				const _uds = await this.assetUDSService.create(data);
 				console.log("🚀 IMPORTED UDS", _uds.asset_3d_id);
+			}
+			console.log("🚀 ~ Import DONE");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
+
+	@Get('import_warranty_type')
+	async importWarrantyType(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/CIFM\ list.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[1]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			// Prepare data
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			const importData = [];
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				console.log("🚀  OBJ", _obj);
+				const _n_type = String(_obj['A']).trim();
+
+				importData.push({ name: _n_type });
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const _type = await this.warrantyTypeService.create(data);
+				console.log("🚀 IMPORTED TYPE: ", _type.name);
 			}
 			console.log("🚀 ~ Import DONE");
 		} catch (err) {
