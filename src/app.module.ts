@@ -12,6 +12,8 @@ import { BuildingModule } from './building/building.module';
 import { DepartmentModule } from './department/department.module';
 import { FacilityTypeModule } from './facility_type/facility_type.module';
 import { ImportModule } from './import/import.module';
+import { IoTModule } from './iot/iot.module';
+import { OccupancyModule } from './occupancy/occupancy.module';
 import { RoomInformationModule } from './room-information/room-information.module';
 import { RoomTypeModule } from './room-type/room-type.module';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
@@ -49,7 +51,9 @@ import { WarrantyTypeModule } from './warranty_type/warranty_type.module';
     AssetSubSystemModule,
     AssetUDSModule,
     WarrantyTypeModule,
-    FacilityTypeModule
+    FacilityTypeModule,
+    OccupancyModule,
+    IoTModule
     // SharedModule
   ],
   controllers: [AppController],
