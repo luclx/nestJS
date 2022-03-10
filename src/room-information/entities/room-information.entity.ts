@@ -17,7 +17,7 @@ export class RoomInformationEntity extends AbstractEntity {
   department_id: number;
 
   @Column({ type: 'bigint' })
-  room_type_id: number;
+  room_type_3d_id: number;
 
   @Column({ type: 'varchar', length: 50 })
   unit_number: string;

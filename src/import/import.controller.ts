@@ -10,7 +10,7 @@ import { AssetUDSService } from './../asset_uds/asset_uds.service';
 import { BuildingService } from './../building/building.service';
 import { DepartmentService } from './../department/department.service';
 import { RoomInformationService } from './../room-information/room-information.service';
-import { RoomTypeService } from './../room-type/room-type.service';
+import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
 import { UnitService } from './../unit_of_measurement/unit.service';
@@ -36,7 +36,7 @@ export class ImportController {
 		private readonly buildingService: BuildingService,
 		private readonly assetLocationService: AssetLocationService,
 		private readonly departmentService: DepartmentService,
-		private readonly roomTypeService: RoomTypeService,
+		private readonly roomType3DService: RoomType3DService,
 		private readonly roomInformationService: RoomInformationService,
 		private readonly unitService: UnitService,
 		private readonly sorTypeService: SorTypeService,
@@ -53,7 +53,7 @@ export class ImportController {
 	/**
 	 * IMPORTANT: move all levels to TOP
 	 */
-	@Get('import_location')
+	@Get('import_room_information')
 	async importRoomInformation(): Promise<void> {
 		try {
 			const _file = path.resolve('/Users/luc.le/S3/Block1A.xlsx');
@@ -81,8 +81,8 @@ export class ImportController {
 				const _n_area = _obj['Area'];
 				const _n_department = String(_obj['Department/School']).trim();
 				const _n_room_type = String(_obj['Room Type']).trim();
-				const _n_unit_number = String(_obj['Unit Number']).trim();
-				const _n_lease = String(_obj['Lease (Y/N)']).trim();
+				const _n_unit_number = _obj['Unit Number'];
+				const _n_lease = _obj['Lease (Y/N)'];
 				console.log("🚀  OBJ", _n_room_number);
 
 				//---------------Location--------------
@@ -140,9 +140,9 @@ export class ImportController {
 				//------------Room Type------------------
 				let _type = _room_types.find(x => x.name === _n_room_type);
 				if (!_type) {
-					_type = await this.roomTypeService.findOne({ name: _n_room_type })
+					_type = await this.roomType3DService.findOne({ name: _n_room_type })
 					if (!_type) {
-						_type = await this.roomTypeService.create({ name: _n_room_type });
+						_type = await this.roomType3DService.create({ name: _n_room_type });
 						console.log("🚀 IMPORTED TYPE", _type.name);
 					}
 					_room_types.push(_type)
@@ -153,7 +153,7 @@ export class ImportController {
 					asset_location_id: _asset_location.id,
 					area: Number(_n_area),
 					department_id: _department.id,
-					room_type_id: _type.id,
+					room_type_3d_id: _type.id,
 					unit_number: _n_unit_number,
 					lease: _n_lease
 				});

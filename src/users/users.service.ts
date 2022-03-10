@@ -52,7 +52,7 @@ export class UsersService {
     return await this.userRepository.delete(_id);
   }
 
-  public async query(_fields): Promise<number> {
-    return await this.userRepository.query(_fields);
+  public async query(_fields, params?): Promise<any> {
+    return await this.userRepository.query(_fields, params);
   }
 }

@@ -20,4 +20,8 @@ export class OccupancyService {
   async findOne(_fields): Promise<OccupancyEntity> {
     return await this.repository.findOne(_fields);
   }
+
+  public async query(_fields, params?): Promise<any> {
+    return await this.repository.query(_fields, params);
+  }
 }

@@ -28,4 +28,8 @@ export class AssetLocationService {
   async findOne(_fields): Promise<AssetLocationEntity> {
     return await this.repository.findOne(_fields);
   }
+
+  public async query(_fields, params?): Promise<any> {
+    return await this.repository.query(_fields, params);
+  }
 }

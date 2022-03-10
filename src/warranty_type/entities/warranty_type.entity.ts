@@ -1,5 +1,5 @@
 import { Column, Entity } from "typeorm";
-import { AbstractEntity } from "../../common/abstract.entity";
+import { AbstractEntity } from "./../../common/abstract.entity";
 
 @Entity({ name: 'WarrantyType' })
 export class WarrantyTypeEntity extends AbstractEntity {

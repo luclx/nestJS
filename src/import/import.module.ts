@@ -1,6 +1,7 @@
+import { WarrantyTypeModule } from './../warranty_type/warranty_type.module';
 import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { Module } from '@nestjs/common';
-import { WarrantyTypeService } from 'src/warranty_type/warranty_type.service';
+import { WarrantyTypeService } from './../warranty_type/warranty_type.service';
 import { AssetLocationModule } from './../asset-location/asset-location.module';
 import { AssetLocationService } from './../asset-location/asset-location.service';
 import { Asset3DService } from './../asset_3d/asset_3d.service';
@@ -14,8 +15,8 @@ import { DepartmentModule } from './../department/department.module';
 import { DepartmentService } from './../department/department.service';
 import { RoomInformationModule } from './../room-information/room-information.module';
 import { RoomInformationService } from './../room-information/room-information.service';
-import { RoomTypeModule } from './../room-type/room-type.module';
-import { RoomTypeService } from './../room-type/room-type.service';
+import { RoomType3DModule } from '../room-type-3d/room-type-3d.module';
+import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
 import { UnitService } from './../unit_of_measurement/unit.service';
@@ -29,7 +30,8 @@ import { ImportController } from './import.controller';
         AssetLocationModule,
         DepartmentModule,
         RoomInformationModule,
-        RoomTypeModule
+        RoomType3DModule,
+        WarrantyTypeModule
     ],
     controllers: [ImportController],
     exports: [],
@@ -38,7 +40,7 @@ import { ImportController } from './import.controller';
         AssetLocationService,
         DepartmentService,
         RoomInformationService,
-        RoomTypeService,
+        RoomType3DService,
         UnitService,
         SorTypeService,
         SorService,
