@@ -1,7 +1,8 @@
-import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
 import { AssetLocationService } from './../asset-location/asset-location.service';
+import { AssetLocationEntity } from './../asset-location/entities/asset-location.entity';
 import { Asset3DService } from './../asset_3d/asset_3d.service';
 import { AssetClassificationService } from './../asset_classification/asset_classification.service';
 import { AssetSubSystemService } from './../asset_sub_system/asset_sub_system.service';
@@ -9,8 +10,8 @@ import { AssetSystemService } from './../asset_system/asset_system.service';
 import { AssetUDSService } from './../asset_uds/asset_uds.service';
 import { BuildingService } from './../building/building.service';
 import { DepartmentService } from './../department/department.service';
+import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { RoomInformationService } from './../room-information/room-information.service';
-import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
 import { UnitService } from './../unit_of_measurement/unit.service';
@@ -50,19 +51,52 @@ export class ImportController {
 		private readonly facilityTypeService: FacilityTypeService
 	) { }
 
+	readonly _asset_locations = []
+	async findOrCreate(parent_location, new_location, room_name) {
+
+		// if parent_location = null -> no need parent
+		// if parent_location  != null, will find parent, else throw error
+		let _p_location: AssetLocationEntity = null
+		if (parent_location) {
+			_p_location = this._asset_locations.find(x => x.room_number === parent_location)
+
+			if (!_p_location) {
+				throw new Error("PARENT INVALID");
+			}
+		}
+
+		let _asset_location = this._asset_locations.find(x => x.room_number === new_location);
+
+		if (!_asset_location) {
+			_asset_location = await this.assetLocationService.findOne({ room_number: new_location })
+			if (!_asset_location) {
+				_asset_location = await this.assetLocationService.create({
+					building_id: 91, // pls check on real DB 01A =91, 09 = 83
+					parent_id: _p_location ? _p_location.id : null,
+					room_number: new_location,
+					slug_name: room_name ? new_location + ' (' + room_name + ')' : new_location,
+					room_name: new_location
+				})
+				console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
+			}
+
+			this._asset_locations.push(_asset_location);
+		}
+		return _asset_location
+	}
+
 	/**
 	 * IMPORTANT: move all levels to TOP
 	 */
 	@Get('import_room_information')
 	async importRoomInformation(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/Block1A.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/Room_A1.xlsx');
 			const wb = XLSX.readFile(_file);
-			const ws = wb.Sheets[wb.SheetNames[0]];
+			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
 
 			const importData = [];
-			const _asset_locations = []
 			const _room_types = []
 			const _departments = []
 
@@ -86,41 +120,36 @@ export class ImportController {
 				console.log("🚀  OBJ", _n_room_number);
 
 				//---------------Location--------------
-				const [_building_num, _level_num, _room_num] = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
-				const _n_parent_location = _building_num.replace('EW', '0') + '-' + _level_num
-				const _n_location = _n_parent_location + (_room_num ? ('-' + _room_num) : '');
+				const locationArr = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
+				const building_num = locationArr[0]
+				let _asset_location: AssetLocationEntity = null
 
-				let _asset_location = _asset_locations.find(x => x.room_number === _n_location);
+				// 01-01: size 2
+				// 01-01-01: size 3
+				// 01-01-01-01: size 4
+				// 01-01-01-01-01: size 5
+				for (let i = 1; i < locationArr.length; i++) {
+					let new_location: string = building_num
+					let paren_location: string = null
 
-				if (!_asset_location) {
-					_asset_location = await this.assetLocationService.findOne({ room_number: _n_location })
-					if (!_asset_location) {
-						let _parent = null
-						// if location not a level
-						if (_n_location != _n_parent_location) {
-							_parent = await this.assetLocationService.findOne({ room_number: _n_parent_location })
-							if (!_parent) {
-								_parent = await this.assetLocationService.create({
-									building_id: 1,
-									parent_id: null,
-									room_number: _n_parent_location,
-									slug_name: _n_parent_location,
-									room_name: _n_parent_location
-								})
-								console.log("🚀 IMPORTED PARENT LOCATION", _parent.room_number);
-							}
+					for (let j = 1; j <= i; j++) {
+						new_location += '-' + locationArr[j]
+						if (j == i - 1) {
+							paren_location = new_location
 						}
-						_asset_location = await this.assetLocationService.create({
-							building_id: 1,
-							parent_id: _parent ? _parent.id : null,
-							room_number: _n_location,
-							slug_name: _n_location + ' (' + _n_name + ')',
-							room_name: _n_name
-						})
-						console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
 					}
 
-					_asset_locations.push(_asset_location);
+					const name: string = i == locationArr.length - 1 ? _n_name : null
+					// the last always is our target
+					_asset_location = await this.findOrCreate(paren_location, new_location, name)
+				}
+				// 01-01-01: size 3
+				// turn 1: i = 1, j = 1 -> new_location = '01-01', paren_location = null
+				// turn 2: i = 2, j = 1 -> new_location = '01-01', paren_location = null
+				// turn 3: i = 2, j = 2 -> new_location = '01-01-01', paren_location = '01-01-01'
+
+				if (!_asset_location) {
+					throw Error("Cannot import room: " + _n_room_number)
 				}
 
 				//-----------Location END----------------
@@ -151,11 +180,11 @@ export class ImportController {
 
 				importData.push({
 					asset_location_id: _asset_location.id,
-					area: Number(_n_area),
+					area: Number(_n_area ? _n_area : 0),
 					department_id: _department.id,
 					room_type_3d_id: _type.id,
-					unit_number: _n_unit_number,
-					lease: _n_lease
+					unit_number: null,
+					lease: null
 				});
 			}
 
@@ -164,6 +193,7 @@ export class ImportController {
 				const _rom_info = await this.roomInformationService.create(data);
 				console.log("🚀 IMPORTED ROOM", _rom_info.id);
 			}
+			console.log("🚀 ~ Import DATA DONE");
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err)
 		}
