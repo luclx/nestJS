@@ -75,7 +75,7 @@ export class ImportController {
 					parent_id: _p_location ? _p_location.id : null,
 					room_number: new_location,
 					slug_name: room_name ? new_location + ' (' + room_name + ')' : new_location,
-					room_name: new_location
+					room_name: room_name
 				})
 				console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
 			}
