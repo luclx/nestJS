@@ -29,7 +29,7 @@ export class Asset3DEntity extends AbstractEntity {
   quantity: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  equipment_label: string;
+  mark: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   onsite_equipment_label: string;
@@ -54,16 +54,4 @@ export class Asset3DEntity extends AbstractEntity {
 
   @Column({ nullable: true })
   warranty_expire_date: Date;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  sub_contractor: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  person_in_charge: string;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  email: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  contact_number: string;
 }

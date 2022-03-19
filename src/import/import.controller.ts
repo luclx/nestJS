@@ -91,7 +91,7 @@ export class ImportController {
 	@Get('import_room_information')
 	async importRoomInformation(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/import_3d/Room_A1.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIrInformation_1A.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -274,13 +274,12 @@ export class ImportController {
 	@Get('import_asset_3d')
 	async importAsset3D(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/TP_AIR\ Information_Blk\ 1A.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIrInformation_1A.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
 
 			const importData = [];
-			const _asset_locations = []
 			const _systems = []
 			const _sub_systems = []
 			const _classifications = []
@@ -298,11 +297,10 @@ export class ImportController {
 				const _n_system = String(_obj['System']).trim();
 				const _n_sub_system = String(_obj['Sub-System']).trim();
 				const _n_classification = String(_obj['Classification']).trim();
-				const _n_type_description = String(_obj['Equipment Type/Description']).trim();
-				const _n_quantity = String(_obj['Quantity']).trim();
+				const _n_type_description = String(_obj['Equipment Type']).trim();
 				const _n_room_number = String(_obj['Room Number']).trim();
 				const _n_room_name = String(_obj['Room Name']).trim();
-				const _n_equipment_label = String(_obj['Equipment Label']).trim();
+				const _n_mark = String(_obj['Mark']).trim();
 				const _n_onsite_equipment_label = String(_obj['Onsite Equipment Label']).trim();
 				const _n_control_panel = String(_obj['Control Panel']).trim();
 				const _n_brand = String(_obj['Brand']).trim();
@@ -310,49 +308,32 @@ export class ImportController {
 				const _n_capacity = String(_obj['Capacity']).trim();
 				const _n_serial_number = _obj['Serial Number'];
 				const _n_installation_date = _obj['Installation Date'];
-				const _n_warranty_expire_date = _obj['Warranty Expire Date'];
-				const _n_sub_contract = _obj['Sub-Contractor '];
-				const _n_pic = _obj['Person-in-charge'];
-				const _n_email = _obj['Email'];
-				const _n_contract_no = _obj['Contact No.'];
+				const _n_warranty_expire_date = _obj['Warranty Expiry Date'];
 				// console.log("🚀  Location", _n_room_number);
 
 				//---------------Location--------------
-				const [_building_num, _level_num, _room_num] = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
-				const _n_parent_location = _building_num.replace('EW', '0') + '-' + _level_num
-				const _n_location = _n_parent_location + (_room_num ? ('-' + _room_num) : '');
+				//---------------Location--------------
+				const locationArr = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
+				const building_num = locationArr[0]
+				let _asset_location: AssetLocationEntity = null
 
-				let _asset_location = _asset_locations.find(x => x.room_number === _n_location);
+				for (let i = 1; i < locationArr.length; i++) {
+					let new_location: string = building_num
+					let paren_location: string = null
 
-				if (!_asset_location) {
-					_asset_location = await this.assetLocationService.findOne({ room_number: _n_location })
-					if (!_asset_location) {
-						let _parent = null
-						// if location not a level
-						if (_n_location != _n_parent_location) {
-							_parent = await this.assetLocationService.findOne({ room_number: _n_parent_location })
-							if (!_parent) {
-								_parent = await this.assetLocationService.create({
-									building_id: 1,
-									parent_id: null,
-									room_number: _n_parent_location,
-									slug_name: _n_parent_location,
-									room_name: _n_parent_location
-								})
-								console.log("🚀 IMPORTED PARENT LOCATION", _parent.room_number);
-							}
+					for (let j = 1; j <= i; j++) {
+						new_location += '-' + locationArr[j]
+						if (j == i - 1) {
+							paren_location = new_location
 						}
-						_asset_location = await this.assetLocationService.create({
-							building_id: 1,
-							parent_id: _parent ? _parent.id : null,
-							room_number: _n_location,
-							slug_name: _n_location + ' (' + _n_room_name + ')',
-							room_name: _n_room_name
-						})
-						console.log("🚀 IMPORTED LOCATION", _asset_location.room_number);
 					}
 
-					_asset_locations.push(_asset_location);
+					const name: string = i == locationArr.length - 1 ? _n_room_name : null
+					// the last always is our target
+					_asset_location = await this.findOrCreate(paren_location, new_location, name)
+				}
+				if (!_asset_location) {
+					throw Error("Cannot import room: " + _n_room_number)
 				}
 
 				//-----------Location END----------------
@@ -393,35 +374,34 @@ export class ImportController {
 				}
 				//------------Asset Classification END ----------------
 
+				// const [month, day, year] = _n_installation_date.split("/")
+				// const [monthw, dayw, yearw] = _n_warranty_expire_date.split("/")
+
 				importData.push({
 					zone_id: 5,
 					building_id: 91,
-					asset_location_id: _asset_location.id,
 					asset_system_id: _system.id,
 					asset_subsystem_id: _sub_system.id,
+					asset_location_id: _asset_location.id,
 					asset_classification_id: _classification.id,
 					equipment_type_description: _n_type_description,
-					quantity: _n_quantity,
-					equipment_label: _n_equipment_label,
+					quantity: 1,
+					equipment_model: _n_equipment_model,
 					onsite_equipment_label: _n_onsite_equipment_label,
 					control_panel: _n_control_panel,
 					brand: _n_brand,
-					equipment_model: _n_equipment_model,
 					capacity: _n_capacity ? _n_capacity : null,
 					serial_number: _n_serial_number ? _n_serial_number : null,
-					installation_date: _n_installation_date ? _n_installation_date : null,
-					warranty_expire_date: _n_warranty_expire_date ? _n_warranty_expire_date : null,
-					sub_contractor: _n_sub_contract ? _n_sub_contract : null,
-					person_in_charge: _n_pic ? _n_pic : null,
-					email: _n_email ? _n_email : null,
-					contact_number: _n_contract_no ? _n_contract_no : null
+					mark: _n_mark,
+					installation_date: _n_installation_date ? new Date(Math.round((_n_installation_date - 25569) * 86400 * 1000)) : null,
+					warranty_expire_date: _n_warranty_expire_date ? new Date(Math.round((_n_warranty_expire_date - 25569) * 86400 * 1000)) : null
 				});
 			}
 
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
 				const _asset_info = await this.asset3DService.create(data);
-				console.log("🚀 IMPORTED ASSET", _asset_info.equipment_label);
+				console.log("🚀 IMPORTED ASSET MARK", _asset_info.mark);
 			}
 			console.log("🚀 IMPORT DONE.", "");
 		} catch (err) {
