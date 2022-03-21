@@ -91,7 +91,7 @@ export class ImportController {
 	@Get('import_room_information')
 	async importRoomInformation(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIrInformation_1A.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/Room_09.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -274,7 +274,7 @@ export class ImportController {
 	@Get('import_asset_3d')
 	async importAsset3D(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIrInformation_1A.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIRInformation_09.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -294,18 +294,18 @@ export class ImportController {
 			for (let i = 0; i < wsData.length; i++) {
 				const _obj = wsData[i];
 				// console.log("🚀  OBJ", _obj);
-				const _n_system = String(_obj['System']).trim();
-				const _n_sub_system = String(_obj['Sub-System']).trim();
-				const _n_classification = String(_obj['Classification']).trim();
-				const _n_type_description = String(_obj['Equipment Type']).trim();
-				const _n_room_number = String(_obj['Room Number']).trim();
-				const _n_room_name = String(_obj['Room Name']).trim();
-				const _n_mark = String(_obj['Mark']).trim();
-				const _n_onsite_equipment_label = String(_obj['Onsite Equipment Label']).trim();
-				const _n_control_panel = String(_obj['Control Panel']).trim();
-				const _n_brand = String(_obj['Brand']).trim();
-				const _n_equipment_model = String(_obj['Equipment Model']).trim();
-				const _n_capacity = String(_obj['Capacity']).trim();
+				const _n_system = _obj['System'];
+				const _n_sub_system = _obj['Sub-System'];
+				const _n_classification = _obj['Classification'];
+				const _n_type_description = _obj['Equipment Type'];
+				const _n_room_number = _obj['Room Number'];
+				const _n_room_name = _obj['Room Name'];
+				const _n_mark = _obj['Mark'];
+				const _n_onsite_equipment_label = _obj['Onsite Equipment Label'];
+				const _n_control_panel = _obj['Control Panel'];
+				const _n_brand = _obj['Brand'];
+				const _n_equipment_model = _obj['Equipment Model'];
+				const _n_capacity = _obj['Capacity'];
 				const _n_serial_number = _obj['Serial Number'];
 				const _n_installation_date = _obj['Installation Date'];
 				const _n_warranty_expire_date = _obj['Warranty Expiry Date'];
@@ -384,12 +384,12 @@ export class ImportController {
 					asset_subsystem_id: _sub_system.id,
 					asset_location_id: _asset_location.id,
 					asset_classification_id: _classification.id,
-					equipment_type_description: _n_type_description,
+					equipment_type_description: _n_type_description ? _n_type_description : null,
 					quantity: 1,
-					equipment_model: _n_equipment_model,
-					onsite_equipment_label: _n_onsite_equipment_label,
-					control_panel: _n_control_panel,
-					brand: _n_brand,
+					equipment_model: _n_equipment_model ? _n_equipment_model : null,
+					onsite_equipment_label: _n_onsite_equipment_label ? _n_onsite_equipment_label : null,
+					control_panel: _n_control_panel ? _n_control_panel: null,
+					brand: _n_brand ? _n_brand : null,
 					capacity: _n_capacity ? _n_capacity : null,
 					serial_number: _n_serial_number ? _n_serial_number : null,
 					mark: _n_mark,
@@ -449,8 +449,13 @@ export class ImportController {
 
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
-				const _uds = await this.assetUDSService.create(data);
-				console.log("🚀 IMPORTED UDS MARK", _uds.pipes);
+				const uds = await this.assetUDSService.findOne({ asset_3d_id: data.asset_3d_id })
+				if (uds) {
+					console.log("🚀 UDS MARK EXISTING", uds.pipes);
+				} else {
+					const _uds = await this.assetUDSService.create(data);
+					console.log("🚀 IMPORTED UDS MARK", _uds.pipes);
+				}
 			}
 			console.log("🚀 ~ Import DONE");
 		} catch (err) {
