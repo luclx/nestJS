@@ -119,6 +119,14 @@ export class ImportController {
 				const _n_lease = _obj['Lease (Y/N)'];
 				console.log("🚀  OBJ", _n_room_number);
 
+				if (!_n_room_type) {
+					throw Error("Cannot _n_room_type " + i)
+				}
+
+				if (!_n_department) {
+					throw Error("Cannot _n_department " + i)
+				}
+
 				//---------------Location--------------
 				const locationArr = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
 				const building_num = locationArr[0]
@@ -143,10 +151,6 @@ export class ImportController {
 					// the last always is our target
 					_asset_location = await this.findOrCreate(paren_location, new_location, name)
 				}
-				// 01-01-01: size 3
-				// turn 1: i = 1, j = 1 -> new_location = '01-01', paren_location = null
-				// turn 2: i = 2, j = 1 -> new_location = '01-01', paren_location = null
-				// turn 3: i = 2, j = 2 -> new_location = '01-01-01', paren_location = '01-01-01'
 
 				if (!_asset_location) {
 					throw Error("Cannot import room: " + _n_room_number)
@@ -297,7 +301,7 @@ export class ImportController {
 				const _n_system = _obj['System'];
 				const _n_sub_system = _obj['Sub-System'];
 				const _n_classification = _obj['Classification'];
-				const _n_type_description = _obj['Equipment Type'];
+				const _n_type_description = _obj['Equipment Type / Description'];
 				const _n_room_number = _obj['Room Number'];
 				const _n_room_name = _obj['Room Name'];
 				const _n_mark = _obj['Mark'];
@@ -310,6 +314,22 @@ export class ImportController {
 				const _n_installation_date = _obj['Installation Date'];
 				const _n_warranty_expire_date = _obj['Warranty Expiry Date'];
 				// console.log("🚀  Location", _n_room_number);
+
+				if (!_n_system) {
+					throw Error("Missing _n_system " + i)
+				}
+				if (!_n_sub_system) {
+					throw Error("Missing _n_sub_system " + i)
+				}
+				if (!_n_classification) {
+					throw Error("Missing _n_classification " + i)
+				}
+				if (!_n_type_description) {
+					throw Error("Missing _n_type_description " + i)
+				}
+				if (!_n_mark) {
+					throw Error("Missing _n_mark " + i)
+				}
 
 				//---------------Location--------------
 				//---------------Location--------------
@@ -388,7 +408,7 @@ export class ImportController {
 					quantity: 1,
 					equipment_model: _n_equipment_model ? _n_equipment_model : null,
 					onsite_equipment_label: _n_onsite_equipment_label ? _n_onsite_equipment_label : null,
-					control_panel: _n_control_panel ? _n_control_panel: null,
+					control_panel: _n_control_panel ? _n_control_panel : null,
 					brand: _n_brand ? _n_brand : null,
 					capacity: _n_capacity ? _n_capacity : null,
 					serial_number: _n_serial_number ? _n_serial_number : null,
@@ -412,7 +432,7 @@ export class ImportController {
 	@Get('import_asset_uds')
 	async importAssetUDS(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/import_3d/UDS_1A.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/UDS_09.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -430,7 +450,7 @@ export class ImportController {
 
 			for (let i = 0; i < wsData.length; i++) {
 				const _obj = wsData[i];
-				console.log("🚀  OBJ", _obj);
+				// console.log("🚀  OBJ", _obj);
 				const _n_uds = String(_obj['UDS Information']).trim();
 				const markArr = _n_uds.split(",")
 				const _n_parent = markArr[0].trim()
@@ -451,10 +471,10 @@ export class ImportController {
 			for (const data of importData) {
 				const uds = await this.assetUDSService.findOne({ asset_3d_id: data.asset_3d_id })
 				if (uds) {
-					console.log("🚀 UDS MARK EXISTING", uds.pipes);
+					// console.log("🚀 UDS MARK EXISTING", uds.pipes);
 				} else {
 					const _uds = await this.assetUDSService.create(data);
-					console.log("🚀 IMPORTED UDS MARK", _uds.pipes);
+					// console.log("🚀 IMPORTED UDS MARK", _uds.pipes);
 				}
 			}
 			console.log("🚀 ~ Import DONE");
