@@ -1,3 +1,4 @@
+import { CADService } from './../cad/cad.service';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
@@ -14,6 +15,7 @@ import { FacilityTypeService } from './../facility_type/facility_type.service';
 import { RoomInformationService } from './../room-information/room-information.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
+import { UDSService } from './../uds/uds.service';
 import { UnitService } from './../unit_of_measurement/unit.service';
 import { WarrantyTypeService } from './../warranty_type/warranty_type.service';
 'use strict';
@@ -48,11 +50,13 @@ export class ImportController {
 		private readonly assetUDSService: AssetUDSService,
 		private readonly assetClassificationService: AssetClassificationService,
 		private readonly warrantyTypeService: WarrantyTypeService,
-		private readonly facilityTypeService: FacilityTypeService
+		private readonly facilityTypeService: FacilityTypeService,
+		private readonly udsService: UDSService,
+		private readonly cadService: CADService
 	) { }
 
 	readonly _asset_locations = []
-	async findOrCreate(parent_location, new_location, room_name) {
+	async findOrCreate(parent_location, new_location, room_name, block_id) {
 
 		// if parent_location = null -> no need parent
 		// if parent_location  != null, will find parent, else throw error
@@ -71,7 +75,7 @@ export class ImportController {
 			_asset_location = await this.assetLocationService.findOne({ room_number: new_location })
 			if (!_asset_location) {
 				_asset_location = await this.assetLocationService.create({
-					building_id: 91, // pls check on real DB 01A =91, 09 = 83
+					building_id: block_id,
 					parent_id: _p_location ? _p_location.id : null,
 					room_number: new_location,
 					slug_name: room_name ? new_location + ' (' + room_name + ')' : new_location,
@@ -92,6 +96,7 @@ export class ImportController {
 	async importRoomInformation(): Promise<void> {
 		try {
 			const _file = path.resolve('/Users/luc.le/S3/import_3d/Room_09.xlsx');
+			const block_id = 83
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -149,7 +154,7 @@ export class ImportController {
 
 					const name: string = i == locationArr.length - 1 ? _n_name : null
 					// the last always is our target
-					_asset_location = await this.findOrCreate(paren_location, new_location, name)
+					_asset_location = await this.findOrCreate(paren_location, new_location, name, block_id)
 				}
 
 				if (!_asset_location) {
@@ -279,6 +284,8 @@ export class ImportController {
 	async importAsset3D(): Promise<void> {
 		try {
 			const _file = path.resolve('/Users/luc.le/S3/import_3d/AIRInformation_09.xlsx');
+			const zone_id = 6;
+			const block_id = 83;
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -350,7 +357,7 @@ export class ImportController {
 
 					const name: string = i == locationArr.length - 1 ? _n_room_name : null
 					// the last always is our target
-					_asset_location = await this.findOrCreate(paren_location, new_location, name)
+					_asset_location = await this.findOrCreate(paren_location, new_location, name, block_id)
 				}
 				if (!_asset_location) {
 					throw Error("Cannot import room: " + _n_room_number)
@@ -398,8 +405,8 @@ export class ImportController {
 				// const [monthw, dayw, yearw] = _n_warranty_expire_date.split("/")
 
 				importData.push({
-					zone_id: 5,
-					building_id: 91,
+					zone_id: zone_id,
+					building_id: block_id,
 					asset_system_id: _system.id,
 					asset_subsystem_id: _sub_system.id,
 					asset_location_id: _asset_location.id,
@@ -432,7 +439,7 @@ export class ImportController {
 	@Get('import_asset_uds')
 	async importAssetUDS(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/import_3d/UDS_09.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/UDS_1A.xlsx');
 			const wb = XLSX.readFile(_file);
 			const ws = wb.Sheets[wb.SheetNames[1]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
@@ -451,30 +458,33 @@ export class ImportController {
 			for (let i = 0; i < wsData.length; i++) {
 				const _obj = wsData[i];
 				// console.log("🚀  OBJ", _obj);
-				const _n_uds = String(_obj['UDS Information']).trim();
-				const markArr = _n_uds.split(",")
-				const _n_parent = markArr[0].trim()
+				const _n_mark = String(_obj['Mark']).trim();
+				const _n_pipe = String(_obj['Pipe']).trim();
+				const markArr = _n_mark.split(",")
 
-				let _asset = await this.asset3DService.findOne({ mark: _n_parent })
+				const uds = await this.udsService.create({ pipes: _n_pipe });
+				for (let j = 0; j < markArr.length; j++) {
+					let _asset3D = await this.asset3DService.findOne({ mark: markArr[j].trim() })
 
-				if (_asset) {
-					importData.push({
-						asset_3d_id: _asset.id,
-						pipes: _n_uds
-					});
-				} else {
-					console.log("🚀 MARK MISSING ", _n_parent);
+					if (_asset3D) {
+						importData.push({
+							asset_3d_id: _asset3D.id,
+							uds_id: uds.id
+						});
+					} else {
+						console.log("🚀 MARK MISSING ", markArr[j]);
+					}
 				}
 			}
 
 			console.log("🚀 ~ Import DATA");
 			for (const data of importData) {
-				const uds = await this.assetUDSService.findOne({ asset_3d_id: data.asset_3d_id })
-				if (uds) {
-					// console.log("🚀 UDS MARK EXISTING", uds.pipes);
+				const assetUDS = await this.assetUDSService.findOne({ asset_3d_id: data.asset_3d_id })
+				if (assetUDS) {
+					console.log("🚀 UDS MARK EXISTING", assetUDS.asset_3d_id);
 				} else {
 					const _uds = await this.assetUDSService.create(data);
-					// console.log("🚀 IMPORTED UDS MARK", _uds.pipes);
+					console.log("🚀 IMPORTED UDS MARK", _uds.asset_3d_id);
 				}
 			}
 			console.log("🚀 ~ Import DONE");
@@ -554,6 +564,139 @@ export class ImportController {
 			console.log("🚀 ~ Import DONE");
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
+
+	@Get('import_urn')
+	async importURN(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/CIFM\ list.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[1]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			// Prepare data
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			const importData = [];
+
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				console.log("🚀  OBJ", _obj);
+				const _location = String(_obj['A']).trim();
+				const _urn = String(_obj['A']).trim();
+				const _mep_urn = String(_obj['A']).trim();
+
+				let _asset_location = await this.assetLocationService.findOne({ room_number: _location })
+
+				if (_asset_location) {
+					_asset_location.adsk_urn = _urn
+					_asset_location.adsk_mep_urn = _mep_urn
+				} else {
+					console.log("🚀 MISSING LOCATION", _location);
+				}
+
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const _location = await this.assetLocationService.create(data);
+				console.log("🚀 IMPORTED TYPE: ", _location.room_number);
+			}
+			console.log("🚀 ~ Import DONE");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
+
+	@Get('import_cab')
+	async importCAD(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/TP_Blk\ 9_Drawing\ Information\ List.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[1]];
+			const urn = wb.Sheets[wb.SheetNames[2]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+			let urnData = XLSX.utils.sheet_to_json(urn);
+
+			const importData = [];
+			const _URNs = []
+
+			urnData = urnData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			for (let i = 0; i < urnData.length; i++) {
+				const _obj = urnData[i];
+				const _n_name = String(_obj['Name']).trim();
+				const _n_urn = String(_obj['URN']).trim();
+
+				_URNs.push({
+					name: _n_name,
+					urn: _n_urn
+				});
+			}
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				const _n_mark = _obj['Mark'];
+				const _n_cad1 = _obj['CAD1'];
+				const _n_cad2 = _obj['CAD2'];
+
+				if (_n_cad1) {
+					const urn = _URNs.find(x => x.name === _n_cad1.trim());
+					const asset3D = await this.asset3DService.findOne({ mark: _n_mark })
+					if (asset3D) {
+						importData.push({
+							asset_3d_id: asset3D.id,
+							file_name: urn.name,
+							urn: urn.urn
+						});
+					} else {
+						console.log("🚀 MISSING ASSET MARK", _n_mark);
+					}
+				}
+
+				if (_n_cad2) {
+					const urn = _URNs.find(x => x.name === _n_cad2.trim());
+					const asset3D = await this.asset3DService.findOne({ mark: _n_mark })
+					if (asset3D) {
+						importData.push({
+							asset_3d_id: asset3D.id,
+							file_name: urn.name,
+							urn: urn.urn
+						});
+					} else {
+						console.log("🚀 MISSING ASSET MARK", _n_mark);
+					}
+				}
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const cad = await this.cadService.create(data);
+				console.log("🚀 IMPORTED ASSET CAD", cad);
+			}
+			console.log("🚀 IMPORT DONE.");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err)
 		}
 	}
 }

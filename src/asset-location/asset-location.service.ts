@@ -32,4 +32,8 @@ export class AssetLocationService {
   public async query(_fields, params?): Promise<any> {
     return await this.repository.query(_fields, params);
   }
+
+  public async update(newUpdate): Promise<AssetLocationEntity> {
+    return await this.repository.save(newUpdate);
+  }
 }

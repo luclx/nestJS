@@ -1,4 +1,3 @@
-import { IoTModule } from './iot/iot.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -10,13 +9,16 @@ import { AssetSystemModule } from './asset_system/asset_system.module';
 import { AssetUDSModule } from './asset_uds/asset_uds.module';
 import { AuthModule } from './auth/auth.module';
 import { BuildingModule } from './building/building.module';
+import { CADModule } from './cad/cad.module';
 import { DepartmentModule } from './department/department.module';
 import { FacilityTypeModule } from './facility_type/facility_type.module';
 import { ImportModule } from './import/import.module';
+import { IoTModule } from './iot/iot.module';
 import { OccupancyModule } from './occupancy/occupancy.module';
 import { RoomInformationModule } from './room-information/room-information.module';
 import { RoomType3DModule } from './room-type-3d/room-type-3d.module';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
+import { UDSModule } from './uds/uds.module';
 import { UsersModule } from './users/users.module';
 import { WarrantyTypeModule } from './warranty_type/warranty_type.module';
 
@@ -53,7 +55,9 @@ import { WarrantyTypeModule } from './warranty_type/warranty_type.module';
     WarrantyTypeModule,
     FacilityTypeModule,
     OccupancyModule,
-    IoTModule
+    IoTModule,
+    UDSModule,
+    CADModule
     // SharedModule
   ],
   controllers: [AppController],
