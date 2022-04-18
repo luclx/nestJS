@@ -211,9 +211,9 @@ export class ImportController {
 	@Get('import_sor')
 	async importSOR(): Promise<void> {
 		try {
-			const _file = path.resolve('/Users/luc.le/S3/sor_handled/15_18\ Horticultural\ n\ Landscape\ SOR\ Corr\ 2.xlsx');
+			const _file = path.resolve('/Users/luc.le/S3/sor_handled/15_2\ MEP\ SOR\ Corr.1/ACMV\ Combined\ SOR\ Corr.1.xlsx');
 			const wb = XLSX.readFile(_file);
-			const ws = wb.Sheets[wb.SheetNames[1]];
+			const ws = wb.Sheets[wb.SheetNames[6]];
 			let wsData = XLSX.utils.sheet_to_json(ws);
 
 			// Prepare data
@@ -238,8 +238,12 @@ export class ImportController {
 				const _n_type = _g_type === 'undefined' || _g_type === '' ? 'N/A' : _g_type;
 				const _g_item_no = String(_obj['Item No.']).trim();
 				const _n_item_no = _g_item_no === 'undefined' || _g_item_no === undefined ? 'N/A' : _g_item_no;;
-				const _n_description = String(_obj['Description']).trim();
+				const _n_description =  String(_obj['Description']).trim();
 				const _n_unit_price = _obj['Price']
+
+				if(isNaN(_n_unit_price)){
+					throw new Error("Bad request");
+				}
 
 				let _unit = _units.find(x => x.name === _n_unit);
 				if (!_unit) {
@@ -275,6 +279,7 @@ export class ImportController {
 				const _sor = await this.sorService.create(data);
 				console.log("🚀 IMPORTED SOR", _sor.id);
 			}
+			console.log("🚀 ~ Import DATA DONE");
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err);
 		}
