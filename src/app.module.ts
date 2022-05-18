@@ -1,3 +1,6 @@
+import { AssetModule } from './asset/asset.module';
+import { FaultTypeModule } from './fault_type/fault_type.module';
+import { FaultCategoryModule } from './fault_category/fault_category.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -57,7 +60,10 @@ import { WarrantyTypeModule } from './warranty_type/warranty_type.module';
     OccupancyModule,
     IoTModule,
     UDSModule,
-    CADModule
+    CADModule,
+    FaultCategoryModule,
+    FaultTypeModule,
+    AssetModule
     // SharedModule
   ],
   controllers: [AppController],

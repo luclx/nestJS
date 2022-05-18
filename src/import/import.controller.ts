@@ -1,17 +1,20 @@
-import { CADService } from './../cad/cad.service';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RoomType3DService } from '../room-type-3d/room-type-3d.service';
 import { AssetLocationService } from './../asset-location/asset-location.service';
 import { AssetLocationEntity } from './../asset-location/entities/asset-location.entity';
+import { AssetService } from './../asset/asset.service';
 import { Asset3DService } from './../asset_3d/asset_3d.service';
 import { AssetClassificationService } from './../asset_classification/asset_classification.service';
 import { AssetSubSystemService } from './../asset_sub_system/asset_sub_system.service';
 import { AssetSystemService } from './../asset_system/asset_system.service';
 import { AssetUDSService } from './../asset_uds/asset_uds.service';
 import { BuildingService } from './../building/building.service';
+import { CADService } from './../cad/cad.service';
 import { DepartmentService } from './../department/department.service';
 import { FacilityTypeService } from './../facility_type/facility_type.service';
+import { FaultCategoryService } from './../fault_category/fault_category.service';
+import { FaultTypeService } from './../fault_type/fault_type.service';
 import { RoomInformationService } from './../room-information/room-information.service';
 import { SorService } from './../sor/sor.service';
 import { SorTypeService } from './../sor_type/sor_type.service';
@@ -52,7 +55,10 @@ export class ImportController {
 		private readonly warrantyTypeService: WarrantyTypeService,
 		private readonly facilityTypeService: FacilityTypeService,
 		private readonly udsService: UDSService,
-		private readonly cadService: CADService
+		private readonly cadService: CADService,
+		private readonly faultCategoryService: FaultCategoryService,
+		private readonly faultTypeService: FaultTypeService,
+		private readonly assetService: AssetService
 	) { }
 
 	readonly _asset_locations = []
@@ -89,7 +95,20 @@ export class ImportController {
 		return _asset_location
 	}
 
-	/**
+	async findBlockId(block) {
+		switch (block) {
+			case '01':
+				return 92
+			case '04':
+				return 95
+			case '05':
+				return 96
+			default:
+			// code block
+		}
+	}
+
+	/** 
 	 * IMPORTANT: move all levels to TOP
 	 */
 	@Get('import_room_information')
@@ -238,10 +257,10 @@ export class ImportController {
 				const _n_type = _g_type === 'undefined' || _g_type === '' ? 'N/A' : _g_type;
 				const _g_item_no = String(_obj['Item No.']).trim();
 				const _n_item_no = _g_item_no === 'undefined' || _g_item_no === undefined ? 'N/A' : _g_item_no;;
-				const _n_description =  String(_obj['Description']).trim();
+				const _n_description = String(_obj['Description']).trim();
 				const _n_unit_price = _obj['Price']
 
-				if(isNaN(_n_unit_price)){
+				if (isNaN(_n_unit_price)) {
 					throw new Error("Bad request");
 				}
 
@@ -472,6 +491,7 @@ export class ImportController {
 					let _asset3D = await this.asset3DService.findOne({ mark: markArr[j].trim() })
 
 					if (_asset3D) {
+						console.log("🚀 MARK ADDED ", _asset3D.mark);
 						importData.push({
 							asset_3d_id: _asset3D.id,
 							uds_id: uds.id
@@ -700,6 +720,197 @@ export class ImportController {
 				console.log("🚀 IMPORTED ASSET CAD", cad);
 			}
 			console.log("🚀 IMPORT DONE.");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err)
+		}
+	}
+
+	@Get('import_category_type')
+	async importCateGory(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/Downloads/Asset_Template_IWS_ConnectionOne.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[3]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			// Prepare data
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+
+			const importData = [];
+			const _categories = [];
+
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				const _n_category = String(_obj['A']).trim();
+				const _n_type = String(_obj['B']).trim();
+
+				let _category = _categories.find(x => x.name === _n_category);
+				if (!_category) {
+					_category = await this.faultCategoryService.findOne({ name: _n_category })
+					if (!_category) {
+						_category = await this.faultCategoryService.create({
+							subscription_id: 1,
+							name: _n_category,
+							severity_id: 3,
+							trade_naming_code: _n_category.substring(0, 3)
+						});
+						console.log("🚀 IMPORTED FAULT CATEGORY", _n_category);
+					}
+					_categories.push(_category)
+				}
+
+				importData.push({
+					fault_category_id: _category.id,
+					severity_id: 3,
+					name: _n_type
+				});
+			}
+
+			console.log("🚀 ~ Import DATA");
+			for (const data of importData) {
+				const _sor = await this.faultTypeService.create(data);
+				console.log("🚀 IMPORTED FAULT TYPE", _sor.id);
+			}
+			console.log("🚀 ~ Import DATA DONE");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err);
+		}
+	}
+
+	@Get('import_asset')
+	async importAsset(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/Downloads/Asset_Template\ \(3\).xlsx');
+			const zone_id = 6;
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[0]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			const importData = [];
+			const _systems = []
+			const _sub_systems = []
+
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				// console.log("🚀  OBJ", _obj);
+				const _n_system = _obj['System'];
+				const _n_sub_system = _obj['Sub-System'];
+				const _n_equipment_type_description = _obj['Equipment Type / Description'];
+				const _n_quantity = _obj['Quantity'];
+				const _n_tower = _obj['Tower'];
+				const _n_level = _obj['Level'];
+				const _n_room_number = _obj['Room Number'];
+				const _n_room_name = _obj['Room Name'];
+				const _n_equipment_label = _obj['Equipment Label'];
+				const _n_onsite_equipment_label = _obj['Onsite Equipment Label'];
+				const _n_control_panel = _obj['Control Panel'];
+				const _n_brand = _obj['Brand'];
+				const _n_equipment_model = _obj['Equipment Model'];
+				// console.log("🚀  Location", _n_room_number);
+
+				//---------------Location--------------
+				const locationArr = _n_room_number.split('-').map(x => x.trim()).filter(x => x)
+				const building_num = locationArr[0]
+				let _asset_location: AssetLocationEntity = null
+
+				for (let i = 1; i < locationArr.length; i++) {
+					let new_location: string = building_num
+					let paren_location: string = null
+
+					for (let j = 1; j <= i; j++) {
+						new_location += '-' + locationArr[j]
+						if (j == i - 1) {
+							paren_location = new_location
+						}
+					}
+
+					const name: string = i == locationArr.length - 1 ? _n_room_name : null
+					const block_id = await this.findBlockId(building_num);
+					console.log("🚀 Location", block_id);
+					// the last always is our target
+					_asset_location = await this.findOrCreate(paren_location, new_location, name, block_id)
+				}
+				if (!_asset_location) {
+					throw Error("Cannot import room: " + _n_room_number)
+				}
+
+				//------------Asset Classification Type------------------
+				let _classification = _systems.find(x => x.name === _n_system);
+				if (!_classification) {
+					_classification = await this.assetClassificationService.findOne({ name: _n_system })
+					if (!_classification) {
+						_classification = await this.assetClassificationService.create({ name: _n_system });
+						console.log("🚀 IMPORTED CLASSIFICATION", _classification.name);
+					}
+					_systems.push(_classification)
+				}
+				//------------Asset Classification END ----------------
+
+
+				//------------Asset Sub Classification Type------------------
+				let _sub_classification = _sub_systems.find(x => x.name === _n_sub_system);
+				if (!_sub_classification) {
+					_sub_classification = await this.assetClassificationService.findOne({ name: _n_sub_system })
+					if (!_sub_classification) {
+						_sub_classification = await this.assetClassificationService.create({
+							name: _n_sub_system,
+							parent_id: _classification.id
+						});
+						console.log("🚀 IMPORTED SUB CLASSIFICATION", _sub_classification.name);
+					}
+					_sub_systems.push(_sub_classification)
+				}
+				//------------Asset Sub Classification END ----------------
+
+				//-----------Location END----------------
+
+				importData.push({
+					building_id: _asset_location.building_id,
+					asset_location_id: _asset_location.id,
+					asset_classification_id: _sub_classification.id,
+					zone_id: zone_id,
+					equipment: _n_equipment_type_description,
+					quantity: _n_quantity ? _n_quantity : 1,
+					tower: _n_tower,
+					level: _n_level,
+					equipment_no: _n_equipment_label,
+					onsite_equipment: _n_onsite_equipment_label ? _n_onsite_equipment_label : null,
+					control_panel: _n_control_panel ? _n_control_panel : null,
+					brand: _n_brand ? _n_brand : null,
+					brand_model_no: _n_equipment_model ? _n_equipment_model : null,
+					details: null,
+					installation_date: null,
+					warranty_expire_date: null,
+					sub_contractor: null,
+					pic: null,
+					email: null,
+					contact_no: null,
+					qr_code: null,
+					asset_no: null,
+					status: 'Commissioned',
+					attachments: null
+				});
+			}
+
+			console.log("🚀 ~ STARTED Import DATA");
+			for (const data of importData) {
+				const _asset_info = await this.assetService.create(data);
+				console.log("🚀 IMPORTED ASSET EQUIPMENT", _asset_info.equipment_no);
+			}
+			console.log("🚀 IMPORT DONE.", "");
 		} catch (err) {
 			console.log("🚀 ~ file: ImportService.js ERROR", err)
 		}
