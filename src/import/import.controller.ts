@@ -108,6 +108,10 @@ export class ImportController {
 		}
 	}
 
+	pad(d): string {
+		return (d < 10) ? '0' + d.toString() : d.toString();
+	}
+
 	/** 
 	 * IMPORTANT: move all levels to TOP
 	 */
@@ -900,6 +904,138 @@ export class ImportController {
 					contact_no: null,
 					qr_code: null,
 					asset_no: null,
+					status: 'Commissioned',
+					attachments: null
+				});
+			}
+
+			console.log("🚀 ~ STARTED Import DATA");
+			for (const data of importData) {
+				const _asset_info = await this.assetService.create(data);
+				console.log("🚀 IMPORTED ASSET EQUIPMENT", _asset_info.equipment_no);
+			}
+			console.log("🚀 IMPORT DONE.", "");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err)
+		}
+	}
+
+	@Get('import_asset_sj_campus')
+	async importAssetSJCampus(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/Downloads/Asset_Template_IWS_ConnectionOne_V2.xlsx');
+			const zone_id = 6;
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[0]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			const importData = [];
+			const _systems = []
+			const _sub_systems = []
+
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				// console.log("🚀  OBJ", _obj);
+				const _n_system = _obj['System'];
+				const _n_sub_system = _obj['Sub-System'];
+				const _n_quantity = _obj['Quantity'];
+				const _n_tower = _obj['Tower'];
+				const _n_level = _obj['Level'];
+				const _n_room_name = _obj['Room Name'];
+				const _n_location = _obj['Location'];
+				const _n_equipment_label = _obj['Equipment Label'];
+				const _n_brand = _obj['Brand'];
+				const _n_equipment_model = _obj['Equipment Model'];
+				const _n_asset_no = _obj['Asset No.'];
+
+				//---------------Location--------------
+				const towerArr = _n_tower.split(' ').map(x => x.trim()).filter(x => x)
+				const levelArr = _n_level.split(' ').map(x => x.trim()).filter(x => x)
+				const building_num = this.pad(towerArr[1])
+				const level = this.pad(levelArr[1])
+				const locationArr = [building_num, level, _n_room_name]
+				let _asset_location: AssetLocationEntity = null
+
+				for (let i = 1; i < locationArr.length; i++) {
+					let new_location: string = building_num
+					let paren_location: string = null
+
+					for (let j = 1; j <= i; j++) {
+						new_location += '-' + locationArr[j]
+						if (j == i - 1) {
+							paren_location = new_location
+						}
+					}
+
+					const block_id = await this.findBlockId(building_num);
+					console.log("🚀 Location", block_id);
+					// the last always is our target
+					_asset_location = await this.findOrCreate(paren_location, new_location, _n_location, block_id)
+				}
+				if (!_asset_location) {
+					throw Error("Cannot import room: " + locationArr[0] + "-" + locationArr[1] + "-" + locationArr[2])
+				}
+
+				//------------Asset Classification Type------------------
+				let _classification = _systems.find(x => x.name === _n_system);
+				if (!_classification) {
+					_classification = await this.assetClassificationService.findOne({ name: _n_system })
+					if (!_classification) {
+						_classification = await this.assetClassificationService.create({ name: _n_system });
+						console.log("🚀 IMPORTED CLASSIFICATION", _classification.name);
+					}
+					_systems.push(_classification)
+				}
+				//------------Asset Classification END ----------------
+
+
+				//------------Asset Sub Classification Type------------------
+				let _sub_classification = _sub_systems.find(x => x.name === _n_sub_system);
+				if (!_sub_classification) {
+					_sub_classification = await this.assetClassificationService.findOne({ name: _n_sub_system })
+					if (!_sub_classification) {
+						_sub_classification = await this.assetClassificationService.create({
+							name: _n_sub_system,
+							parent_id: _classification.id
+						});
+						console.log("🚀 IMPORTED SUB CLASSIFICATION", _sub_classification.name);
+					}
+					_sub_systems.push(_sub_classification)
+				}
+				//------------Asset Sub Classification END ----------------
+
+				//-----------Location END----------------
+
+				importData.push({
+					building_id: _asset_location.building_id,
+					asset_location_id: _asset_location.id,
+					asset_classification_id: _sub_classification.id,
+					zone_id: zone_id,
+					equipment: null,
+					quantity: _n_quantity ? _n_quantity : 1,
+					tower: _n_tower,
+					level: _n_level,
+					equipment_no: _n_equipment_label,
+					onsite_equipment: null,
+					control_panel: null,
+					brand: _n_brand ? _n_brand : null,
+					brand_model_no: _n_equipment_model ? _n_equipment_model : null,
+					details: null,
+					installation_date: null,
+					warranty_expire_date: null,
+					sub_contractor: null,
+					pic: null,
+					email: null,
+					contact_no: null,
+					qr_code: null,
+					asset_no: _n_asset_no ? _n_asset_no : null,
 					status: 'Commissioned',
 					attachments: null
 				});
