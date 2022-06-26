@@ -62,10 +62,8 @@ export class AssetEntity extends AbstractEntity {
   @Column({ type: 'varchar', length: 100})
   email: string;
 
-
   @Column({ type: 'varchar', length: 100})
   contact_no: string;
-
 
   @Column({ type: 'varchar', length: 100})
   asset_no: string;

@@ -189,7 +189,7 @@ export class ImportController {
 				//------------Department------------------
 				let _department = _departments.find(x => x.name === _n_department);
 				if (!_department) {
-					_department = await this.departmentService.findOne({ name: _n_department })
+					_department = await this.departmentService.findOne({ where: { name: _n_department } })
 					if (!_department) {
 						_department = await this.departmentService.create({ name: _n_department });
 						console.log("🚀 IMPORTED DEPT", _department.name);
@@ -1045,6 +1045,43 @@ export class ImportController {
 			for (const data of importData) {
 				const _asset_info = await this.assetService.create(data);
 				console.log("🚀 IMPORTED ASSET EQUIPMENT", _asset_info.equipment_no);
+			}
+			console.log("🚀 IMPORT DONE.", "");
+		} catch (err) {
+			console.log("🚀 ~ file: ImportService.js ERROR", err)
+		}
+	}
+
+	@Get('test')
+	async testNewCRUDLib(): Promise<void> {
+		try {
+			const _file = path.resolve('/Users/luc.le/S3/import_3d/Room_09.xlsx');
+			const wb = XLSX.readFile(_file);
+			const ws = wb.Sheets[wb.SheetNames[2]];
+			let wsData = XLSX.utils.sheet_to_json(ws);
+
+			const _departments = []
+
+			wsData = wsData.map(item => {
+				let _obj = {}
+				Object.keys(item).map(key => {
+					_obj[key.replace('*', '').trim()] = typeof item[key] === 'string' ? item[key].trim() : item[key]
+				});
+				return _obj;
+			});
+			for (let i = 0; i < wsData.length; i++) {
+				const _obj = wsData[i];
+				// console.log("🚀  OBJ", _obj);
+				const _n_department = String(_obj['Department']).trim();
+				let _department = _departments.find(x => x.name === _n_department);
+				if (!_department) {
+					_department = await this.departmentService.findOne({ where: { name: _n_department } })
+					if (!_department) {
+						_department = await this.departmentService.create({ name: _n_department });
+						console.log("🚀 IMPORTED DEPT", _department.name);
+					}
+					_departments.push(_department)
+				}
 			}
 			console.log("🚀 IMPORT DONE.", "");
 		} catch (err) {

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { SorTypeService } from './sor_type.service';
 @Module({
   controllers: [],
-  providers: [SorTypeService]
+  providers: [SorTypeService],
+  exports: [SorTypeService],
 })
-export class UnitModule { }
+export class SorTypeModule { }

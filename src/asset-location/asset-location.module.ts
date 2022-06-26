@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BuildingEntity } from './../building/entities/building.entity';
 import { AssetLocationController } from './asset-location.controller';
 import { AssetLocationService } from './asset-location.service';
-import { AssetLocationRepository } from './assset-location.repository';
+import { AssetLocationEntity } from './entities/asset-location.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([AssetLocationRepository, BuildingEntity])],
+  imports: [TypeOrmModule.forFeature([AssetLocationEntity])],
   controllers: [AssetLocationController],
   providers: [AssetLocationService],
   exports: [AssetLocationService]

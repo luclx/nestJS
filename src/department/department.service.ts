@@ -1,21 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Connection } from 'typeorm';
-import { DepartmentRepository } from './department.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TypeOrmCrudService } from '@nestjsx/crud-typeorm';
 import { DepartmentEntity } from './entities/department.entity';
-
 @Injectable()
-export class DepartmentService {
-  private repository: DepartmentRepository;
-
-  constructor(private readonly connection: Connection) {
-    this.repository = this.connection.getCustomRepository(DepartmentRepository);
+export class DepartmentService extends TypeOrmCrudService<DepartmentEntity>{
+  constructor(@InjectRepository(DepartmentEntity) repo) {
+    super(repo);
   }
+  // private repository: DepartmentRepository;
+
+  // constructor(private readonly connection: Connection) {
+  //   this.repository = this.connection.getCustomRepository(DepartmentRepository);
+  // }
   async create(_fields): Promise<DepartmentEntity[] | DepartmentEntity> {
     const _item = Object.assign(new DepartmentEntity(), _fields);
-    return await this.repository.save(_item);
-  }
-
-  async findOne(_fields): Promise<DepartmentEntity> {
-    return await this.repository.findOne(_fields);
+    return await this.repo.save(_item);
   }
 }
